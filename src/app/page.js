@@ -195,7 +195,7 @@ export default function Home() {
                 Laboratory Equipment Manager
               </h1>
               <p className="text-[11px] text-slate-400 sm:text-xs">
-                Lab A · Equipment Reservation System
+                Dept. Of ME, RUET, Md. Mostafa Kamal
               </p>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function Home() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-              <span>Lab A Portal · Real-time System</span>
+              <span></span>
             </div>
 
             <h2 className="text-2xl font-extrabold tracking-tight sm:text-4xl md:text-5xl md:leading-tight">
@@ -246,7 +246,7 @@ export default function Home() {
 
             <p className="mt-3 text-xs leading-relaxed text-slate-300 sm:mt-4 sm:text-sm sm:leading-6 md:text-base">
               Check live laboratory equipment status, submit reservation
-              requests instantly, and track approvals seamlessly from any device.
+              requests instantly.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
@@ -463,7 +463,7 @@ export default function Home() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                placeholder="e.g. Alex Johnson"
+                placeholder=""
                 required
               />
 
@@ -472,7 +472,7 @@ export default function Home() {
                 name="studentId"
                 value={form.studentId}
                 onChange={handleChange}
-                placeholder="e.g. STU-2024-9182"
+                placeholder=""
                 required
               />
 
