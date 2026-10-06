@@ -414,11 +414,7 @@ export default function Home() {
         </section>
 
         {/* FOOTER */}
-        <footer className="mt-12 sm:mt-16 border-t border-slate-200/80 pt-6 pb-8 text-center">
-          <p className="text-xs text-slate-400">
-            Laboratory Equipment Manager · Lab A · Department of Science & Engineering
-          </p>
-        </footer>
+        
       </div>
 
       {/* RESERVATION MODAL */}
