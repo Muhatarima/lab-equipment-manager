@@ -414,7 +414,11 @@ export default function Home() {
         </section>
 
         {/* FOOTER */}
-        
+        <footer className="mt-10 text-center">
+  <p className="text-sm font-medium text-slate-600">
+    Department of Mechanical Engineering, RUET
+  </p>
+</footer>
       </div>
 
       {/* RESERVATION MODAL */}
