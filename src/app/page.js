@@ -238,9 +238,9 @@ export default function Home() {
             </div>
 
             <h2 className="text-2xl font-extrabold tracking-tight sm:text-4xl md:text-5xl md:leading-tight">
-              Equipment availability,{" "}
+              Equipment availability{" "}
               <span className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
-                made simple.
+                
               </span>
             </h2>
 
