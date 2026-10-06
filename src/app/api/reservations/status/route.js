@@ -1,7 +1,4 @@
-import fs from "fs";
-import path from "path";
-
-const filePath = path.join(process.cwd(), "data", "db.json");
+import { readDatabase } from "@/lib/storage";
 
 export async function GET(request) {
   try {
@@ -22,13 +19,11 @@ export async function GET(request) {
       );
     }
 
-    const db = JSON.parse(
-      fs.readFileSync(filePath, "utf8")
-    );
+    const db = readDatabase();
 
-    const reservation = db.reservations.find(
+    const reservation = (db.reservations || []).find(
       (item) =>
-        item.trackingCode.toUpperCase() === trackingCode
+        item.trackingCode?.toUpperCase() === trackingCode
     );
 
     if (!reservation) {

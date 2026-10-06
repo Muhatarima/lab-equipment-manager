@@ -172,9 +172,6 @@ export default function Home() {
     (status) => status === "inUse"
   ).length;
 
-  const reservedCount = equipmentStatuses.filter(
-    (status) => status === "reserved"
-  ).length;
 
   const availableCount = equipmentStatuses.filter(
     (status) => status === "available"
@@ -377,10 +374,6 @@ export default function Home() {
               <span className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
                 Available
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
-                Reserved
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50" />
@@ -598,10 +591,10 @@ function EquipmentCard({
       iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100",
     },
     reserved: {
-      label: "RESERVED",
-      dot: "bg-amber-500",
-      badge: "bg-amber-50 text-amber-700 border-amber-200",
-      iconBg: "bg-amber-50 text-amber-600 border-amber-100",
+      label: "IN USE",
+      dot: "bg-orange-500",
+      badge: "bg-orange-50 text-orange-700 border-orange-200",
+      iconBg: "bg-orange-50 text-orange-600 border-orange-100",
     },
     inUse: {
       label: "IN USE",
@@ -773,22 +766,8 @@ function getEquipmentStatus(equipmentName, reservations) {
     (reservation) => reservation.equipment === equipmentName
   );
 
-  const activeReservation = equipmentReservations.find((reservation) => {
-    if (reservation.date !== today) {
-      return false;
-    }
-
-    const start = timeToMinutes(reservation.startTime);
-    const end = timeToMinutes(reservation.endTime);
-
-    return currentMinutes >= start && currentMinutes < end;
-  });
-
-  if (activeReservation) {
-    return "inUse";
-  }
-
-  const futureReservation = equipmentReservations.find((reservation) => {
+  // If there is any active or upcoming reservation, mark the equipment as In Use
+  const isReservedOrInUse = equipmentReservations.some((reservation) => {
     if (reservation.date > today) {
       return true;
     }
@@ -797,12 +776,12 @@ function getEquipmentStatus(equipmentName, reservations) {
       return false;
     }
 
-    const start = timeToMinutes(reservation.startTime);
-    return start > currentMinutes;
+    const end = timeToMinutes(reservation.endTime);
+    return end > currentMinutes;
   });
 
-  if (futureReservation) {
-    return "reserved";
+  if (isReservedOrInUse) {
+    return "inUse";
   }
 
   return "available";
@@ -824,8 +803,8 @@ function getNextReservation(equipmentName, reservations) {
         return false;
       }
 
-      const start = timeToMinutes(reservation.startTime);
-      return start > currentMinutes;
+      const end = timeToMinutes(reservation.endTime);
+      return end > currentMinutes;
     })
     .sort((a, b) => {
       const aValue = `${a.date} ${a.startTime}`;
