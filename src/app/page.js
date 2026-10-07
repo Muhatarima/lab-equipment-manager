@@ -1,56 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const EQUIPMENT = [
-  {
-    name: "Hot Plate Magnetic Stirrer",
-    category: "Heating & Mixing",
-    shortName: "Hot Plate",
-    icon: "♨",
-    type: "stirrer",
-  },
-  {
-    name: "Centrifuge",
-    category: "Separation",
-    shortName: "Centrifuge",
-    icon: "◉",
-    type: "centrifuge",
-  },
-  {
-    name: "pH Meter",
-    category: "Measurement",
-    shortName: "pH Meter",
-    icon: "⌁",
-    type: "ph",
-  },
-  {
-    name: "Weight Balance",
-    category: "Measurement",
-    shortName: "Weight Balance",
-    icon: "⚖",
-    type: "balance",
-  },
-  {
-    name: "UV-Vis Spectrophotometer",
-    category: "Analysis",
-    shortName: "UV-Vis",
-    icon: "◈",
-    type: "spectro",
-  },
-];
+import Link from "next/link";
+import { DEFAULT_EQUIPMENT } from "@/lib/constants";
 
 export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [trackingCode, setTrackingCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [reservations, setReservations] = useState([]);
+  const [equipmentList, setEquipmentList] = useState(DEFAULT_EQUIPMENT);
   const [submitting, setSubmitting] = useState(false);
+  const [now, setNow] = useState(new Date());
 
   const [form, setForm] = useState({
     name: "",
     studentId: "",
-    equipment: "Hot Plate Magnetic Stirrer",
+    equipment: DEFAULT_EQUIPMENT[0]?.name || "Hot Plate Magnetic Stirrer",
     date: "",
     startTime: "",
     endTime: "",
@@ -60,11 +26,18 @@ export default function Home() {
   useEffect(() => {
     loadReservations();
 
-    const interval = setInterval(() => {
+    const pollInterval = setInterval(() => {
       loadReservations();
-    }, 30000);
+    }, 20000);
 
-    return () => clearInterval(interval);
+    const clockInterval = setInterval(() => {
+      setNow(new Date());
+    }, 10000);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearInterval(clockInterval);
+    };
   }, []);
 
   async function loadReservations() {
@@ -76,7 +49,10 @@ export default function Home() {
       const result = await response.json();
 
       if (result.success) {
-        setReservations(result.reservations);
+        setReservations(result.reservations || []);
+        if (Array.isArray(result.equipment) && result.equipment.length > 0) {
+          setEquipmentList(result.equipment);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -125,7 +101,7 @@ export default function Home() {
         setForm({
           name: "",
           studentId: "",
-          equipment: "Hot Plate Magnetic Stirrer",
+          equipment: equipmentList[0]?.name || "Hot Plate Magnetic Stirrer",
           date: "",
           startTime: "",
           endTime: "",
@@ -164,14 +140,13 @@ export default function Home() {
     (reservation) => reservation.status === "pending"
   );
 
-  const equipmentStatuses = EQUIPMENT.map((equipment) =>
-    getEquipmentStatus(equipment.name, approvedReservations)
+  const equipmentStatuses = equipmentList.map((equipment) =>
+    getEquipmentStatus(equipment.name, approvedReservations, now)
   );
 
   const currentlyInUse = equipmentStatuses.filter(
     (status) => status === "inUse"
   ).length;
-
 
   const availableCount = equipmentStatuses.filter(
     (status) => status === "available"
@@ -198,21 +173,21 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <a
+            <Link
               href="/status"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
             >
               <SearchIcon className="h-3.5 w-3.5" />
               Track Request
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/admin"
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-white/5 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-white/10 active:scale-95"
             >
               <LockIcon className="h-3.5 w-3.5 text-blue-400" />
               <span>Admin Login</span>
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -255,13 +230,13 @@ export default function Home() {
                 Request Equipment
               </button>
 
-              <a
+              <Link
                 href="/status"
                 className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-slate-600/80 bg-white/5 px-6 py-3 text-center text-sm font-bold text-slate-200 backdrop-blur-sm transition hover:border-slate-400 hover:bg-white/10 active:scale-[0.98]"
               >
                 <SearchIcon className="h-4 w-4 text-slate-300" />
                 Check Request Status
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -308,12 +283,12 @@ export default function Home() {
                   </button>
                 </div>
 
-                <a
+                <Link
                   href={`/status?trackingCode=${encodeURIComponent(trackingCode)}`}
                   className="rounded-xl bg-emerald-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
                 >
                   Track Now →
-                </a>
+                </Link>
               </div>
             </div>
           </section>
@@ -323,7 +298,7 @@ export default function Home() {
         <section className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
             label="Total Equipment"
-            value={EQUIPMENT.length}
+            value={equipmentList.length}
             icon={<GridIcon className="h-5 w-5 text-slate-600" />}
             bgColor="bg-slate-50"
           />
@@ -376,6 +351,10 @@ export default function Home() {
                 Available
               </span>
               <span className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
+                Reserved
+              </span>
+              <span className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50" />
                 In Use
               </span>
@@ -384,11 +363,12 @@ export default function Home() {
 
           {/* EQUIPMENT CARDS GRID */}
           <div className="mt-6 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {EQUIPMENT.map((equipment) => (
+            {equipmentList.map((equipment) => (
               <EquipmentCard
-                key={equipment.name}
+                key={equipment.id || equipment.name}
                 {...equipment}
                 reservations={approvedReservations}
+                now={now}
                 onRequest={() => openReservationModal(equipment.name)}
               />
             ))}
@@ -397,13 +377,13 @@ export default function Home() {
 
         {/* STATUS FOOTER LINK */}
         <section className="mt-10 sm:mt-12 flex justify-center">
-          <a
+          <Link
             href="/status"
             className="group inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs sm:text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/30 hover:text-blue-700 hover:shadow-md"
           >
             <span>Have a reservation tracking code? Check your request</span>
             <span className="transition-transform group-hover:translate-x-1">→</span>
-          </a>
+          </Link>
         </section>
 
         {/* FOOTER */}
@@ -483,8 +463,8 @@ export default function Home() {
                     required
                     className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
                   >
-                    {EQUIPMENT.map((equipment) => (
-                      <option key={equipment.name} value={equipment.name}>
+                    {equipmentList.map((equipment) => (
+                      <option key={equipment.id || equipment.name} value={equipment.name}>
                         {equipment.name} ({equipment.category})
                       </option>
                     ))}
@@ -578,10 +558,12 @@ function EquipmentCard({
   icon,
   type,
   reservations,
+  now,
   onRequest,
 }) {
-  const status = getEquipmentStatus(name, reservations);
-  const nextReservation = getNextReservation(name, reservations);
+  const currentDate = now || new Date();
+  const status = getEquipmentStatus(name, reservations, currentDate);
+  const nextReservation = getNextReservation(name, reservations, currentDate);
 
   const statusConfig = {
     available: {
@@ -589,12 +571,6 @@ function EquipmentCard({
       dot: "bg-emerald-500",
       badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
       iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100",
-    },
-    reserved: {
-      label: "IN USE",
-      dot: "bg-orange-500",
-      badge: "bg-orange-50 text-orange-700 border-orange-200",
-      iconBg: "bg-orange-50 text-orange-600 border-orange-100",
     },
     inUse: {
       label: "IN USE",
@@ -605,6 +581,15 @@ function EquipmentCard({
   };
 
   const config = statusConfig[status] || statusConfig.available;
+
+  const todayStr = formatDate(currentDate);
+  const currentMinutes = currentDate.getHours() * 60 + currentDate.getMinutes();
+  const isCurrentActive =
+    status === "inUse" &&
+    nextReservation &&
+    nextReservation.date === todayStr &&
+    timeToMinutes(nextReservation.startTime) <= currentMinutes &&
+    timeToMinutes(nextReservation.endTime) > currentMinutes;
 
   return (
     <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg sm:p-6">
@@ -639,9 +624,24 @@ function EquipmentCard({
         {/* RESERVATION INFO */}
         <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3.5 sm:p-4">
           <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
-            <span>Next Schedule</span>
+            {isCurrentActive ? (
+              <span className="text-orange-600 font-extrabold flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
+                Active Session
+              </span>
+            ) : (
+              <span>Next Schedule</span>
+            )}
             {nextReservation && (
-              <span className="font-semibold text-emerald-600">Confirmed</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  isCurrentActive
+                    ? "bg-orange-100 text-orange-700"
+                    : "bg-emerald-100 text-emerald-700"
+                }`}
+              >
+                {isCurrentActive ? "In Progress" : "Confirmed"}
+              </span>
             )}
           </div>
 
@@ -662,7 +662,9 @@ function EquipmentCard({
                 </div>
               </div>
               <div className="border-t border-slate-200/70 pt-1.5 text-xs">
-                <span className="text-[11px] text-slate-400">Reserved for: </span>
+                <span className="text-[11px] text-slate-400">
+                  {isCurrentActive ? "In use by: " : "Reserved for: "}
+                </span>
                 <span className="font-semibold text-slate-700 truncate inline-block max-w-[170px] align-bottom">
                   {nextReservation.name}
                 </span>
@@ -757,54 +759,83 @@ function Input({
 /* EQUIPMENT STATUS CALCULATIONS */
 /* ================================================= */
 
-function getEquipmentStatus(equipmentName, reservations) {
-  const now = new Date();
+function getEquipmentStatus(equipmentName, reservations, now = new Date()) {
   const today = formatDate(now);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   const equipmentReservations = reservations.filter(
-    (reservation) => reservation.equipment === equipmentName
+    (reservation) =>
+      reservation.equipment === equipmentName &&
+      reservation.status === "approved"
   );
 
-  // If there is any active or upcoming reservation, mark the equipment as In Use
-  const isReservedOrInUse = equipmentReservations.some((reservation) => {
-    if (reservation.date > today) {
-      return true;
-    }
-
-    if (reservation.date < today) {
+  // An equipment is strictly In Use ONLY if the current time falls inside
+  // an approved reservation's active time period today: [startTime, endTime)
+  const isCurrentlyInUse = equipmentReservations.some((reservation) => {
+    if (!reservation.date || !reservation.startTime || !reservation.endTime) {
       return false;
     }
 
+    if (reservation.date !== today) {
+      return false;
+    }
+
+    const start = timeToMinutes(reservation.startTime);
     const end = timeToMinutes(reservation.endTime);
-    return end > currentMinutes;
+
+    if (start === null || end === null) {
+      return false;
+    }
+
+    if (end > start) {
+      return currentMinutes >= start && currentMinutes < end;
+    }
+
+    // Overnight reservation crossing midnight
+    return currentMinutes >= start;
   });
 
-  if (isReservedOrInUse) {
-    return "inUse";
-  }
-
-  return "available";
+  return isCurrentlyInUse ? "inUse" : "available";
 }
 
-function getNextReservation(equipmentName, reservations) {
-  const now = new Date();
+function getNextReservation(equipmentName, reservations, now = new Date()) {
   const today = formatDate(now);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   const upcoming = reservations
-    .filter((reservation) => reservation.equipment === equipmentName)
+    .filter(
+      (reservation) =>
+        reservation.equipment === equipmentName &&
+        reservation.status === "approved"
+    )
     .filter((reservation) => {
+      if (!reservation.date || !reservation.startTime || !reservation.endTime) {
+        return false;
+      }
+
+      // Future date -> upcoming
       if (reservation.date > today) {
         return true;
       }
 
+      // Past date -> already finished
       if (reservation.date < today) {
         return false;
       }
 
+      // Today: active or future reservation until its endTime
       const end = timeToMinutes(reservation.endTime);
-      return end > currentMinutes;
+      const start = timeToMinutes(reservation.startTime);
+
+      if (start === null || end === null) {
+        return false;
+      }
+
+      if (end > start) {
+        return end > currentMinutes;
+      }
+
+      return true;
     })
     .sort((a, b) => {
       const aValue = `${a.date} ${a.startTime}`;
@@ -832,9 +863,10 @@ function formatDisplayDate(dateString) {
 }
 
 function timeToMinutes(time) {
-  if (!time) return 0;
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
+  if (!time || typeof time !== "string") return null;
+  const parts = time.split(":").map(Number);
+  if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+  return parts[0] * 60 + parts[1];
 }
 
 /* ================================================= */
@@ -976,6 +1008,6 @@ function EquipmentIcon({ type, fallback }) {
         </svg>
       );
     default:
-      return <span>{fallback}</span>;
+      return <span className="text-2xl leading-none select-none">{fallback || "🔬"}</span>;
   }
 }

@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { readDatabase } from "@/lib/storage";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -18,11 +20,17 @@ export async function GET() {
 
     const db = readDatabase();
 
-    return Response.json({
-      success: true,
-      reservations: db.reservations || [],
-    });
-
+    return Response.json(
+      {
+        success: true,
+        reservations: db.reservations || [],
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   } catch (error) {
     console.error(error);
 

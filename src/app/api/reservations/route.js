@@ -1,21 +1,23 @@
 import { readDatabase, writeDatabase } from "@/lib/storage";
 
-const EQUIPMENT = [
-  "Hot Plate Magnetic Stirrer",
-  "Centrifuge",
-  "pH Meter",
-  "Weight Balance",
-  "UV-Vis Spectrophotometer",
-];
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     const db = readDatabase();
 
-    return Response.json({
-      success: true,
-      reservations: db.reservations || [],
-    });
+    return Response.json(
+      {
+        success: true,
+        reservations: db.reservations || [],
+        equipment: db.equipment || [],
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   } catch (error) {
     console.error(error);
 
@@ -58,7 +60,10 @@ export async function POST(request) {
       }
     }
 
-    if (!EQUIPMENT.includes(data.equipment)) {
+    const db = readDatabase();
+    const validEquipmentNames = (db.equipment || []).map((e) => e.name);
+
+    if (!validEquipmentNames.includes(data.equipment)) {
       return Response.json(
         {
           success: false,
@@ -113,8 +118,6 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-
-    const db = readDatabase();
 
     const reservation = {
       id: Date.now(),

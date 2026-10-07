@@ -1,5 +1,7 @@
 import { readDatabase } from "@/lib/storage";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -36,10 +38,17 @@ export async function GET(request) {
       );
     }
 
-    return Response.json({
-      success: true,
-      reservation,
-    });
+    return Response.json(
+      {
+        success: true,
+        reservation,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
 
   } catch (error) {
     console.error(error);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function StatusPage() {
   const [trackingCode, setTrackingCode] = useState("");
@@ -15,8 +16,12 @@ export default function StatusPage() {
       const params = new URLSearchParams(window.location.search);
       const codeFromUrl = params.get("trackingCode");
       if (codeFromUrl) {
-        setTrackingCode(codeFromUrl.toUpperCase());
-        fetchReservationStatus(codeFromUrl.toUpperCase());
+        const normalized = codeFromUrl.toUpperCase();
+        const timer = setTimeout(() => {
+          setTrackingCode(normalized);
+          fetchReservationStatus(normalized);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, []);
@@ -64,7 +69,7 @@ export default function StatusPage() {
       {/* HEADER */}
       <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-[#0a152d]/95 backdrop-blur-md text-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 lg:px-8">
-          <a href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-base sm:text-lg font-bold text-white shadow-md shadow-blue-900/40">
               <FlaskIcon className="h-5 w-5" />
             </div>
@@ -77,14 +82,14 @@ export default function StatusPage() {
                 Lab A · Reservation Tracking Portal
               </p>
             </div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-white/5 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-white/10"
           >
             <span>← Return Home</span>
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -300,13 +305,13 @@ export default function StatusPage() {
           <p className="text-xs sm:text-sm text-slate-400">
             Need to make a new reservation?
           </p>
-          <a
+          <Link
             href="/"
             className="mt-1.5 inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-blue-600 transition hover:text-blue-700 hover:underline"
           >
             <span>Return to equipment catalog</span>
             <span>→</span>
-          </a>
+          </Link>
         </div>
       </div>
     </main>
