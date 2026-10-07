@@ -686,9 +686,7 @@ export default function AdminPage() {
                 <h3 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900">
                   Add Equipment to Lab
                 </h3>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  Once added, this equipment will automatically appear on the home page for student reservations.
-                </p>
+            
               </div>
 
               <button
